@@ -1,31 +1,25 @@
-name: Github Action 테스트 1번.
+name: Deploy To EC2
+
 on:
   push:
     branches:
       - main
-jobs:
-  My-Deploy-Job:
-    runs-on: ubuntu-latest
 
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
     steps:
-      - name: Hello World 출력
-        run: echo "Hello, World"
-      - name: 여러개 명령어 추가하기
-        run: |
-          echo "첫 번째 명령어"
-          echo "두 번째 명령어"
-          echo "세 번째 명령어"
-      - name: Github Actions 내장 변수 사용
-        run: |
-          echo $GITHUB_SHA
-          echo $GITHUB_REPOSITORY
-          echo "3. 워크플로우 실행한놈 : $GITHUB_ACTOR"
-          echo "4. 현재 실행중인 브랜치 : $GITHUB_REF_NAME"
-          echo "5. 워크플로우 실행 번호 : $GITHUB_RUN_NUMBER"
-      - name: Secret var
-        run: |
-            echo "Secret var : ${{ secrets.MY_AGE }}"
-            echo "Secret var : ${{ secrets.MY_PAY }}"
-      - name: Public var
-        run: |
-            echo "Public var : ${{ vars.MY_GRADE }}"
+      - name: SSH로 EC2에 접속하기
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{secrets.EC2_HOST}}
+          username: ${{secrets.EC2.USERNAME}}
+          key: ${{secrets.EC2_PRIVATE_KEY}}
+          scripts_stop:
+
+          script: |
+              cd /home/ubuntu/AWS_3314
+              git pull origin main
+              ./gradlew clean build -x test
+              sudo fuser -k -n tcp 8080 || true
+              sudo nohup java -jar build/libs/*SNAPSHOT.jar > ./output.log 2>&1 &
