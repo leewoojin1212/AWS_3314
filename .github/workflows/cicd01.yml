@@ -22,7 +22,7 @@ jobs:
           script: |
             cd /home/ubuntu/AWS_3314
             rm -rf src/main/resources/application.yml
-            echco "APPLICATION_PROPERTIES" > src/main/resources/application.yml
+            echco "$APPLICATION_PROPERTIES" > src/main/resources/application.yml
             git pull origin main
             ./gradlew clean build -x test
             sudo fuser -k -n tcp 8080 || true
